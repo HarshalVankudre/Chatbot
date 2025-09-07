@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite AI Chatbot (UTF-8 Fix)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        #chat-container::-webkit-scrollbar { width: 6px; }
+        #chat-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #chat-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        #chat-container::-webkit-scrollbar-thumb:hover { background: #555; }
+        .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 18px; word-wrap: break-word; }
+        .user-bubble { background-color: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .ai-bubble { background-color: #ffffff; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #e5e7eb; }
+        .code-bubble { background-color: #1e293b; color: #f8fafc; font-family: 'Courier New', Courier, monospace; font-size: 0.875rem; white-space: pre-wrap; }
+        .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #9ca3af; animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        .lang-btn.active { background-color: #007bff; color: white; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl flex flex-col h-[90vh]">
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-200 text-center rounded-t-2xl bg-gray-50 relative">
+            <h1 id="ui-title" class="text-xl font-bold text-gray-800">AI Database Chatbot</h1>
+            <p id="ui-subtitle" class="text-sm text-gray-500">Ask questions about your local SQLite database.</p>
+            <div class="absolute top-2 right-2 flex space-x-1">
+                <button id="lang-en" class="lang-btn px-3 py-1 text-sm font-medium border rounded-md">EN</button>
+                <button id="lang-de" class="lang-btn px-3 py-1 text-sm font-medium border rounded-md">DE</button>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="p-4 border-b border-gray-200 space-y-4">
+            <!-- API Key Input -->
+            <div id="api-key-section" class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                 <label for="api-key" id="ui-api-label" class="block text-sm font-medium text-gray-700 mb-1">Step 1: Enter your OpenAI API Key</label>
+                <div class="flex items-center space-x-2">
+                   <input type="password" id="api-key" placeholder="Your API key (sk-...)" class="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                   <button id="save-key-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+                </div>
+            </div>
+
+            <!-- Database File Input -->
+            <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <label for="db-file-input" id="ui-db-label" class="block text-sm font-medium text-gray-700 mb-2">Step 2: Load your database file (.sqlite, .db)</label>
+                <input type="file" id="db-file-input" accept=".sqlite,.db,.sqlite3" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 disabled:opacity-50" disabled>
+                <p id="db-status" class="text-xs text-gray-600 mt-2"></p>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <div id="chat-container" class="flex-grow p-4 overflow-y-auto flex flex-col space-y-4"></div>
+
+        <!-- Message Input -->
+        <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+            <form id="chat-form" class="flex items-center space-x-3">
+                <input type="text" id="message-input" class="flex-grow w-full p-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition" autocomplete="off" disabled>
+                <button type="submit" id="submit-btn" class="bg-blue-600 text-white rounded-full p-3 hover:bg-blue-700 disabled:bg-gray-400" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- This script loads the SQLite engine (sql.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const submitButton = document.getElementById('submit-btn');
+        const apiKeyInput = document.getElementById('api-key');
+        const saveKeyBtn = document.getElementById('save-key-btn');
+        const dbFileInput = document.getElementById('db-file-input');
+        const dbStatus = document.getElementById('db-status');
+        const langEnBtn = document.getElementById('lang-en');
+        const langDeBtn = document.getElementById('lang-de');
+
+        let openaiApiKey = '';
+        let currentLang = 'en';
+        let db = null;
+        let dbSchema = '';
+        let sqlJs;
+
+        const uiStrings = {
+            en: {
+                title: "AI SQLite Chatbot",
+                subtitle: "Ask questions about your local SQLite database.",
+                apiLabel: "Step 1: Enter your OpenAI API Key",
+                save: "Save",
+                dbLabel: "Step 2: Load your database file (.sqlite, .db)",
+                inputPlaceholder: "Type your message...",
+                inputPlaceholderDisabled: "Load a database to begin...",
+                initialMessage: "Hello! Please save your API key and then load a SQLite database file to get started.",
+                keyLoaded: "API key loaded. You can now load a database file.",
+                keySaved: "API key saved! Please load a database file.",
+                keyMissing: "Please enter a valid API key.",
+                dbPrompt: "Please load a database file first.",
+                dbLoading: "Initializing SQLite engine...",
+                dbReading: "Reading file and loading database...",
+                dbSuccess: (name, tables) => `Successfully loaded '${name}'. Found tables: ${tables}. You can now ask questions.`,
+                dbError: "Error: The file is not a valid SQLite database. Check the developer console (F12) for more details.",
+                sqlGenerating: "AI is generating an SQL query...",
+                sqlExecuting: "Executing SQL query...",
+                sqlError: (sql) => `The AI-generated SQL query failed to execute. This may be a bug or an invalid query.\n\nGenerated Query:\n${sql}`,
+                finalAnswer: "Generating a natural language answer...",
+            },
+            de: {
+                title: "KI SQLite Chatbot",
+                subtitle: "Stellen Sie Fragen zu Ihrer lokalen SQLite-Datenbank.",
+                apiLabel: "Schritt 1: Geben Sie Ihren OpenAI API-Schlüssel ein",
+                save: "Speichern",
+                dbLabel: "Schritt 2: Laden Sie Ihre Datenbankdatei (.sqlite, .db)",
+                inputPlaceholder: "Geben Sie Ihre Nachricht ein...",
+                inputPlaceholderDisabled: "Laden Sie eine Datenbank, um zu beginnen...",
+                initialMessage: "Hallo! Bitte speichern Sie Ihren API-Schlüssel und laden Sie dann eine SQLite-Datenbankdatei, um zu beginnen.",
+                keyLoaded: "API-Schlüssel geladen. Sie können jetzt eine Datenbankdatei laden.",
+                keySaved: "API-Schlüssel gespeichert! Bitte laden Sie eine Datenbankdatei.",
+                keyMissing: "Bitte geben Sie einen gültigen API-Schlüssel ein.",
+                dbPrompt: "Bitte laden Sie zuerst eine Datenbankdatei.",
+                dbLoading: "Initialisiere SQLite-Engine...",
+                dbReading: "Lese Datei und lade Datenbank...",
+                dbSuccess: (name, tables) => `'${name}' erfolgreich geladen. Gefundene Tabellen: ${tables}. Sie können jetzt Fragen stellen.`,
+                dbError: "Fehler: Die Datei ist keine gültige SQLite-Datenbank. Prüfen Sie die Entwicklerkonsole (F12) für Details.",
+                sqlGenerating: "KI generiert eine SQL-Abfrage...",
+                sqlExecuting: "Führe SQL-Abfrage aus...",
+                sqlError: (sql) => `Die von der KI generierte SQL-Abfrage konnte nicht ausgeführt werden. Dies kann ein Fehler oder eine ungültige Abfrage sein.\n\nGenerierte Abfrage:\n${sql}`,
+                finalAnswer: "Generiere eine natürlichsprachliche Antwort...",
+            }
+        };
+
+        async function loadSqlJs() {
+            if (sqlJs) return;
+            dbStatus.textContent = uiStrings[currentLang].dbLoading;
+            dbStatus.style.color = 'orange';
+            sqlJs = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}` });
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const strings = uiStrings[lang];
+            document.documentElement.lang = lang;
+            document.getElementById('ui-title').textContent = strings.title;
+            document.getElementById('ui-subtitle').textContent = strings.subtitle;
+            document.getElementById('ui-api-label').textContent = strings.apiLabel;
+            saveKeyBtn.textContent = strings.save;
+            document.getElementById('ui-db-label').textContent = strings.dbLabel;
+            messageInput.placeholder = db ? strings.inputPlaceholder : strings.inputPlaceholderDisabled;
+            langEnBtn.classList.toggle('active', lang === 'en');
+            langDeBtn.classList.toggle('active', lang === 'de');
+            chatContainer.innerHTML = '';
+            addMessage('ai', strings.initialMessage);
+        }
+
+        function setChatState(enabled) {
+            messageInput.disabled = !enabled;
+            submitButton.disabled = !enabled;
+            messageInput.placeholder = enabled ? uiStrings[currentLang].inputPlaceholder : uiStrings[currentLang].inputPlaceholderDisabled;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const browserLang = navigator.language.split('-')[0];
+            setLanguage(browserLang === 'de' ? 'de' : 'en');
+            const savedKey = localStorage.getItem('openaiApiKey');
+            if (savedKey) {
+                openaiApiKey = savedKey;
+                apiKeyInput.value = savedKey;
+                dbFileInput.disabled = false;
+                addMessage('ai', uiStrings[currentLang].keyLoaded);
+            }
+            await loadSqlJs();
+        });
+
+        saveKeyBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                openaiApiKey = key;
+                localStorage.setItem('openaiApiKey', key);
+                dbFileInput.disabled = false;
+                addMessage('ai', uiStrings[currentLang].keySaved);
+            } else {
+                addMessage('ai', uiStrings[currentLang].keyMissing);
+            }
+        });
+
+        dbFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            dbStatus.textContent = uiStrings[currentLang].dbReading;
+            dbStatus.style.color = 'orange';
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                try {
+                    const Uints = new Uint8Array(e.target.result);
+                    db = new sqlJs.Database(Uints);
+
+                    const schemaRes = db.exec("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';");
+                    if (schemaRes.length === 0 || !schemaRes[0] || schemaRes[0].values.length === 0) {
+                         throw new Error("No tables found in the database.");
+                    }
+                    dbSchema = schemaRes[0].values.map(row => row[0]).join('\n\n');
+
+                    const tableNames = schemaRes[0].values.map(row => {
+                        const createStatement = row[0];
+                        const match = createStatement.match(/CREATE TABLE\s+"?(\w+)"?/i);
+                        return match ? match[1] : 'unknown_table';
+                    }).join(', ');
+
+                    dbStatus.textContent = uiStrings[currentLang].dbSuccess(file.name, tableNames);
+                    dbStatus.style.color = 'green';
+                    setChatState(true);
+                } catch (error) {
+                    console.error("DATABASE LOAD FAILED:", error);
+                    db = null;
+                    dbStatus.textContent = uiStrings[currentLang].dbError;
+                    dbStatus.style.color = 'red';
+                    setChatState(false);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userMessage = messageInput.value.trim();
+            if (!userMessage) return;
+            if (!openaiApiKey) { addMessage('ai', uiStrings[currentLang].keyPrompt); return; }
+            if (!db) { addMessage('ai', uiStrings[currentLang].dbPrompt); return; }
+
+            addMessage('user', userMessage);
+            messageInput.value = '';
+            getAIResponse(userMessage);
+        });
+
+        function addMessage(sender, text, type = 'text') {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-bubble');
+            if (sender === 'user') {
+                messageElement.classList.add('user-bubble');
+            } else {
+                messageElement.classList.add('ai-bubble');
+                if (type === 'code') {
+                    messageElement.classList.add('code-bubble');
+                }
+            }
+            messageElement.textContent = text;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageElement;
+        }
+
+        function addTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.classList.add('chat-bubble', 'ai-bubble', 'typing-indicator');
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            chatContainer.appendChild(indicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return indicator;
+        }
+
+        async function getAIResponse(userQuery) {
+            const typingIndicator = addTypingIndicator();
+            submitButton.disabled = true;
+
+            try {
+                // STEP 1: Generate SQL from natural language
+                typingIndicator.textContent = uiStrings[currentLang].sqlGenerating;
+                const textToSqlPrompt = `Given the following SQLite schema:\n${dbSchema}\n\nWrite a single, valid SQLite query to answer the user's question. ONLY return the SQL query, with no explanation or other text.\nUser Question: "${userQuery}"`;
+                const sqlResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8', // ** THE FIX **
+                        'Authorization': `Bearer ${openaiApiKey}`
+                    },
+                    body: JSON.stringify({ model: "gpt-4o", messages: [{ role: "system", content: "You are an expert SQLite programmer." }, { role: "user", content: textToSqlPrompt }] })
+                });
+                if (!sqlResponse.ok) throw new Error(`OpenAI API Error: ${(await sqlResponse.json()).error.message}`);
+                const sqlResult = await sqlResponse.json();
+                let generatedSql = sqlResult.choices[0].message.content.trim();
+
+                if (generatedSql.startsWith("```sql")) {
+                    generatedSql = generatedSql.substring(6, generatedSql.length - 3).trim();
+                } else if (generatedSql.startsWith("```")) {
+                     generatedSql = generatedSql.substring(3, generatedSql.length - 3).trim();
+                }
+
+                addMessage('ai', `SQL Query:\n${generatedSql}`, 'code');
+
+                // STEP 2: Execute the generated SQL
+                typingIndicator.textContent = uiStrings[currentLang].sqlExecuting;
+                let queryResultData;
+                try {
+                    const results = db.exec(generatedSql);
+                    queryResultData = results.length > 0 ? results.map(r => ({ columns: r.columns, values: r.values })) : "Query executed successfully, but returned no data.";
+                } catch (e) {
+                    console.error("SQL EXECUTION FAILED:", e);
+                    throw new Error(uiStrings[currentLang].sqlError(generatedSql));
+                }
+
+                // STEP 3: Generate natural language response from SQL results
+                typingIndicator.textContent = uiStrings[currentLang].finalAnswer;
+                const sqlToTextPrompt = `You are a helpful AI assistant. Your primary task is to detect the language of the user's original question (it will be either English or German) and respond *exclusively* in that same language.
+                - If the question is in English, respond in English. Format currency with a dollar sign (e.g., $25.00).
+                - If the question is in German, respond in German. Format currency with a Euro sign and comma (e.g., 25,00 €).
+
+                Based on the user's question and the following data from a database query, provide a clear and friendly answer. Do not show the raw data unless it's a short list. Summarize large lists.
+                User's Original Question: "${userQuery}"
+                Data from the query: ${JSON.stringify(queryResultData)}`;
+
+                const finalResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8', // ** THE FIX **
+                        'Authorization': `Bearer ${openaiApiKey}`
+                    },
+                    body: JSON.stringify({ model: "gpt-4o", messages: [{ role: "system", content: "You are a helpful data analyst assistant." }, { role: "user", content: sqlToTextPrompt }] })
+                });
+                if (!finalResponse.ok) throw new Error(`OpenAI API Error: ${(await finalResponse.json()).error.message}`);
+                const finalResult = await finalResponse.json();
+                const aiText = finalResult.choices[0].message.content;
+
+                typingIndicator.remove();
+                addMessage('ai', aiText);
+
+            } catch (error) {
+                console.error("Error in AI Response chain:", error);
+                typingIndicator.remove();
+                addMessage('ai', `Error: ${error.message}`);
+            } finally {
+                if (db) submitButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        langEnBtn.addEventListener('click', () => setLanguage('en'));
+        langDeBtn.addEventListener('click', () => setLanguage('de'));
+    </script>
+</body>
+</html>
