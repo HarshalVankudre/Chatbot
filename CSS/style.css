@@ -86,3 +86,29 @@ body {
     background-color: #007bff;
     color: white;
 }
+
+/* --- NEW: Table Styling --- */
+/* We target tables only inside an AI bubble to avoid affecting other parts of the page */
+.ai-bubble table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    font-size: 0.9rem;
+}
+
+.ai-bubble th,
+.ai-bubble td {
+    border: 1px solid #dfe2e5; /* Light grey borders for cells */
+    padding: 8px 12px;       /* Spacing inside each cell */
+    text-align: left;
+}
+
+.ai-bubble th {
+    background-color: #f6f8fa; /* Light background for headers */
+    font-weight: 600;
+}
+
+.ai-bubble tr:nth-child(even) {
+    background-color: #f6f8fa; /* Alternating row color for readability */
+}

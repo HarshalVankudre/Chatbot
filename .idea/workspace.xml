@@ -4,9 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e287c95b-4b78-4039-839a-f039da8ac521" name="Changes" comment="Simple Basic Working chatbot with input as API Key and a .db file Has a switch to turn eng and DE">
-      <change afterPath="$PROJECT_DIR$/CSS/style.css" afterDir="false" />
+    <list default="true" id="e287c95b-4b78-4039-839a-f039da8ac521" name="Changes" comment="Extracted inline CSS from `index.html` into a separate `style.css` file for better maintainability.">
+      <change afterPath="$PROJECT_DIR$/JS/api.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/JS/config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/JS/db.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/JS/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/JS/ui.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CSS/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/CSS/style.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -87,7 +92,7 @@
       <workItem from="1757141047336" duration="1311000" />
       <workItem from="1757151663162" duration="2059000" />
       <workItem from="1757174511450" duration="1637000" />
-      <workItem from="1757219644394" duration="1768000" />
+      <workItem from="1757219644394" duration="6220000" />
     </task>
     <task id="LOCAL-00001" summary="kn">
       <option name="closed" value="true" />
@@ -129,7 +134,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757220294126</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Extracted inline CSS from `index.html` into a separate `style.css` file for better maintainability.">
+      <option name="closed" value="true" />
+      <created>1757221448436</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1757221448436</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -149,7 +162,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="kn" />
     <MESSAGE value="Simple Basic Working chatbot with input as API Key and a .db file Has a switch to turn eng and DE" />
-    <option name="LAST_COMMIT_MESSAGE" value="Simple Basic Working chatbot with input as API Key and a .db file Has a switch to turn eng and DE" />
+    <MESSAGE value="Extracted inline CSS from `index.html` into a separate `style.css` file for better maintainability." />
+    <option name="LAST_COMMIT_MESSAGE" value="Extracted inline CSS from `index.html` into a separate `style.css` file for better maintainability." />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/PythonProject$main.coverage" NAME="main Coverage Results" MODIFIED="1757142027824" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
