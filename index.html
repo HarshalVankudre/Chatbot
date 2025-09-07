@@ -6,30 +6,11 @@
     <title>SQLite AI Chatbot (UTF-8 Fix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
-        }
-        #chat-container::-webkit-scrollbar { width: 6px; }
-        #chat-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        #chat-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
-        #chat-container::-webkit-scrollbar-thumb:hover { background: #555; }
-        .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 18px; word-wrap: break-word; }
-        .user-bubble { background-color: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .ai-bubble { background-color: #ffffff; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #e5e7eb; }
-        .code-bubble { background-color: #1e293b; color: #f8fafc; font-family: 'Courier New', Courier, monospace; font-size: 0.875rem; white-space: pre-wrap; }
-        .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #9ca3af; animation: bounce 1.4s infinite ease-in-out both; }
-        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
-        .lang-btn.active { background-color: #007bff; color: white; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
 
     <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl flex flex-col h-[90vh]">
-        <!-- Header -->
         <div class="p-4 border-b border-gray-200 text-center rounded-t-2xl bg-gray-50 relative">
             <h1 id="ui-title" class="text-xl font-bold text-gray-800">AI Database Chatbot</h1>
             <p id="ui-subtitle" class="text-sm text-gray-500">Ask questions about your local SQLite database.</p>
@@ -39,9 +20,7 @@
             </div>
         </div>
 
-        <!-- Controls Section -->
         <div class="p-4 border-b border-gray-200 space-y-4">
-            <!-- API Key Input -->
             <div id="api-key-section" class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                  <label for="api-key" id="ui-api-label" class="block text-sm font-medium text-gray-700 mb-1">Step 1: Enter your OpenAI API Key</label>
                 <div class="flex items-center space-x-2">
@@ -50,7 +29,6 @@
                 </div>
             </div>
 
-            <!-- Database File Input -->
             <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <label for="db-file-input" id="ui-db-label" class="block text-sm font-medium text-gray-700 mb-2">Step 2: Load your database file (.sqlite, .db)</label>
                 <input type="file" id="db-file-input" accept=".sqlite,.db,.sqlite3" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 disabled:opacity-50" disabled>
@@ -58,10 +36,8 @@
             </div>
         </div>
 
-        <!-- Chat Container -->
         <div id="chat-container" class="flex-grow p-4 overflow-y-auto flex flex-col space-y-4"></div>
 
-        <!-- Message Input -->
         <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
             <form id="chat-form" class="flex items-center space-x-3">
                 <input type="text" id="message-input" class="flex-grow w-full p-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition" autocomplete="off" disabled>
@@ -72,10 +48,10 @@
         </div>
     </div>
 
-    <!-- This script loads the SQLite engine (sql.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
 
     <script>
+        // Your JavaScript code remains the same...
         const chatContainer = document.getElementById('chat-container');
         const chatForm = document.getElementById('chat-form');
         const messageInput = document.getElementById('message-input');
