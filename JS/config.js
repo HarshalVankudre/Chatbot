@@ -1,17 +1,19 @@
-// Shared State Variables
-let openaiApiKey = '';
-let currentLang = 'en';
-let db = null;
-let dbSchema = '';
-let sqlJs;
-let conversationHistory = []; // NEW: Array to store conversation history
+// AI Model Configuration
+const AI_MODELS = [
+    { name: 'GPT-5', id: 'gpt-5' },
+    { name: 'GPT-5 Mini', id: 'gpt-5-mini' },
+    { name: 'GPT-5 Nano', id: 'gpt-5-nano' },
+    { name: 'GPT-4o Mini', id: 'gpt-4o-mini' },
+    { name: 'GPT-4o', id: 'gpt-4o' },
+    { name: 'GPT-3.5 Turbo', id: 'gpt-3.5-turbo' },
+];
 
 // UI strings for internationalization (English and German)
 const uiStrings = {
     en: {
         title: "AI SQLite Chatbot",
         subtitle: "Ask questions about your local SQLite database.",
-        apiLabel: "Step 1: Enter your OpenAI API Key",
+        apiLabel: "Step 1: Configure API",
         save: "Save",
         dbLabel: "Step 2: Load your database file (.sqlite, .db)",
         inputPlaceholder: "Type your message...",
@@ -29,11 +31,19 @@ const uiStrings = {
         sqlExecuting: "Executing SQL query...",
         sqlError: (sql) => `The AI-generated SQL query failed to execute. This may be a bug or an invalid query.\n\nGenerated Query:\n${sql}`,
         finalAnswer: "Generating a natural language answer...",
+        // New Strings
+        clearChat: "Clear Chat",
+        viewSchema: "View Schema",
+        hideSchema: "Hide Schema",
+        copy: "Copy",
+        copied: "Copied!",
+        sqlCorrection: "Original query failed. Attempting to self-correct...",
+        sqlCorrectionFailed: (sql) => `The self-correction also failed. The last attempted query was:\n${sql}`
     },
     de: {
         title: "KI SQLite Chatbot",
         subtitle: "Stellen Sie Fragen zu Ihrer lokalen SQLite-Datenbank.",
-        apiLabel: "Schritt 1: Geben Sie Ihren OpenAI API-Schlüssel ein",
+        apiLabel: "Schritt 1: API Konfigurieren",
         save: "Speichern",
         dbLabel: "Schritt 2: Laden Sie Ihre Datenbankdatei (.sqlite, .db)",
         inputPlaceholder: "Geben Sie Ihre Nachricht ein...",
@@ -51,5 +61,13 @@ const uiStrings = {
         sqlExecuting: "Führe SQL-Abfrage aus...",
         sqlError: (sql) => `Die von der KI generierte SQL-Abfrage konnte nicht ausgeführt werden. Dies kann ein Fehler oder eine ungültige Abfrage sein.\n\nGenerierte Abfrage:\n${sql}`,
         finalAnswer: "Generiere eine natürlichsprachliche Antwort...",
+        // New Strings
+        clearChat: "Chat leeren",
+        viewSchema: "Schema anzeigen",
+        hideSchema: "Schema ausblenden",
+        copy: "Kopieren",
+        copied: "Kopiert!",
+        sqlCorrection: "Ursprüngliche Abfrage fehlgeschlagen. Versuche, sich selbst zu korrigieren...",
+        sqlCorrectionFailed: (sql) => `Die Selbstkorrektur ist ebenfalls fehlgeschlagen. Die letzte versuchte Abfrage war:\n${sql}`
     }
 };

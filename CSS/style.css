@@ -5,23 +5,28 @@ body {
 }
 
 /* Custom scrollbar for the chat container */
-#chat-container::-webkit-scrollbar {
+#chat-container::-webkit-scrollbar,
+#schema-pre::-webkit-scrollbar {
     width: 6px;
 }
 
-#chat-container::-webkit-scrollbar-track {
+#chat-container::-webkit-scrollbar-track,
+#schema-pre::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 10px;
 }
 
-#chat-container::-webkit-scrollbar-thumb {
+#chat-container::-webkit-scrollbar-thumb,
+#schema-pre::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 10px;
 }
 
-#chat-container::-webkit-scrollbar-thumb:hover {
+#chat-container::-webkit-scrollbar-thumb:hover,
+#schema-pre::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
 
 /* Chat bubble styling */
 .chat-bubble {
@@ -47,12 +52,33 @@ body {
 }
 
 .code-bubble {
+    position: relative;
     background-color: #1e293b;
     color: #f8fafc;
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.875rem;
     white-space: pre-wrap;
+    padding-top: 2.5rem; /* Make space for the copy button */
 }
+
+/* --- NEW: Copy Button Styling --- */
+.copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #334155;
+    color: #cbd5e1;
+    border: 1px solid #475569;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.copy-btn:hover {
+    background-color: #475569;
+}
+
 
 /* Typing indicator animation */
 .typing-indicator span {
@@ -88,7 +114,6 @@ body {
 }
 
 /* --- NEW: Table Styling --- */
-/* We target tables only inside an AI bubble to avoid affecting other parts of the page */
 .ai-bubble table {
     width: 100%;
     border-collapse: collapse;
@@ -99,16 +124,16 @@ body {
 
 .ai-bubble th,
 .ai-bubble td {
-    border: 1px solid #dfe2e5; /* Light grey borders for cells */
-    padding: 8px 12px;       /* Spacing inside each cell */
+    border: 1px solid #dfe2e5;
+    padding: 8px 12px;
     text-align: left;
 }
 
 .ai-bubble th {
-    background-color: #f6f8fa; /* Light background for headers */
+    background-color: #f6f8fa;
     font-weight: 600;
 }
 
 .ai-bubble tr:nth-child(even) {
-    background-color: #f6f8fa; /* Alternating row color for readability */
+    background-color: #f6f8fa;
 }
